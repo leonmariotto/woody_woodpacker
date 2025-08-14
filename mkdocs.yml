@@ -1,0 +1,5 @@
+site_name: Binutils
+theme:
+  name: material
+  palette:
+    scheme: slate
