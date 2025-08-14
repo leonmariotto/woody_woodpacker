@@ -42,9 +42,14 @@ SRC := 											\
 	tinycrypt/lib/source/aes_decrypt.c			\
 	tinycrypt/lib/source/utils.c			\
 	src/main.c									\
+	src/launch.c								\
+	src/start.S									\
+	src/elftool.c									\
+	src/elftool_transform.c									\
+	src/elftool_write.c									\
+	src/elftool_parse.c									\
 
 INCDIR := inc/				\
-		  	libft/			\
 			cmocka/include	\
 			liblst/	\
 			tinycrypt/lib/include \
@@ -87,7 +92,7 @@ $(LIBLST):
 $(CGRAPH_FILE): $(NAME)
 
 $(NAME): $(OBJ) 
-	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIB) $(IFLAGS) -fdump-ipa-cgraph
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIB) $(IFLAGS) -fdump-ipa-cgraph -nostartfiles
 
 $(NAME_COVERAGE): $(OBJ_COVERAGE)
 	$(CC) $(CFLAGS) -o $@ $(OBJ_COVERAGE) $(LIB) $(IFLAGS) -lgcov
@@ -98,6 +103,10 @@ $(NAME_PROFILING): $(OBJ_PROFILING)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(FANALYZER_FLAG) -o $@ -c $< $(IFLAGS)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -o $@ -c $< $(IFLAGS)
 
 $(OBJ_DIR)/%.cov.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)

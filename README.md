@@ -1,8 +1,21 @@
-# binutils
+# Woody woodpacker
 
 [![codecov](https://codecov.io/gh/leonmariotto/binutils/branch/main/graph/badge.svg)](https://codecov.io/gh/leonmariotto/binutils)
 
 ## Whatsup
+
+Implement a packer, that is a binary obfuscater. Woody take an ELF64 in parameter and 
+output an elf64 that have the same behavior but is encrypted.
+
+Woody add functions at the start of binary to decrypt it and launch it.
+
+TODO:
+- packer should parse its own elf, output it + a custom data section containing the encrypted elf and some symbols modified.
+- boot_mode, elf_data, elf_size and key symbols must be overrided by packer.
+- issue with dumped binary, a constant value has changed.
+
+
+## Submodules 
 
 There is some submodule in there, so run:
 ```
@@ -12,10 +25,10 @@ When cloning repository.
 
 There is some dependency :
 <ul>
-    <li>- uv</li>
-    <li>- cppcheck</li>
-    <li>- graphviz</li>
-    <li>- gcovr</li>
+    <li>uv</li>
+    <li>cppcheck</li>
+    <li>graphviz</li>
+    <li>gcovr</li>
 </ul>
 
 This is mainly a reimplementation of nm in C, with some options readelf-like. </br>

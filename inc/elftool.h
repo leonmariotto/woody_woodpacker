@@ -44,5 +44,6 @@
 #endif
 
 int elftool(elftool_opt_t *opt);
+int elftool_load(elftool_t *bin, char *bin_path);
 
 #endif

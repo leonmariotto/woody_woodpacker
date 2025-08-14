@@ -14,13 +14,13 @@ typedef struct elftool_transform_s {
   uint64_t code_len;
 } elftool_transform_t;
 
-int nm_bin_transform_section_injection(elftool_t *bin,
+int elftool_transform_section_injection(elftool_t *bin,
                                        elftool_transform_t *transform);
-int nm_bin_transform_silvio_injection(elftool_t *bin,
+int elftool_transform_silvio_injection(elftool_t *bin,
                                       elftool_transform_t *transform);
-int nm_bin_transform_codecave_injection(elftool_t *bin,
+int elftool_transform_codecave_injection(elftool_t *bin,
                                         elftool_transform_t *transform);
 
-int nm_bin_transform(elftool_t *bin, elftool_transform_t *transform);
+int elftool_transform(elftool_t *bin, elftool_transform_t *transform);
 
 #endif /* ELFTOOL_TRANSFORM_H */
