@@ -4,3 +4,6 @@
 [submodule "gcc_graph_tool"]
 	path = gcc_graph_tool
 	url = https://github.com/leonmariotto/gcc_graph_tool.git
+[submodule "tinycrypt"]
+	path = tinycrypt
+	url = https://github.com/intel/tinycrypt.git

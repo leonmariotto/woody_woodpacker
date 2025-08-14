@@ -38,12 +38,16 @@ PRE_DIR = $(BUILD_DIR)/preprocessing
 CALLGRAPH_DIR = $(BUILD_DIR)/callgraph
 
 SRC := 											\
+	tinycrypt/lib/source/aes_encrypt.c			\
+	tinycrypt/lib/source/aes_decrypt.c			\
+	tinycrypt/lib/source/utils.c			\
 	src/main.c									\
 
 INCDIR := inc/				\
 		  	libft/			\
 			cmocka/include	\
 			liblst/	\
+			tinycrypt/lib/include \
 
 IFLAGS 	= $(foreach D,$(INCDIR), -I$(D))
 
