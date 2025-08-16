@@ -44,15 +44,12 @@ SRC := 											\
 	src/main.c									\
 	src/launch.c								\
 	src/start.S									\
-	src/elftool.c									\
-	src/elftool_transform.c									\
-	src/elftool_write.c									\
-	src/elftool_parse.c									\
 
-INCDIR := inc/				\
-			cmocka/include	\
-			liblst/	\
-			tinycrypt/lib/include \
+INCDIR := inc/						\
+			cmocka/include			\
+			liblst/					\
+			binutils/inc			\
+			tinycrypt/lib/include 	\
 
 IFLAGS 	= $(foreach D,$(INCDIR), -I$(D))
 
@@ -70,8 +67,9 @@ GCDAFILES = $(patsubst $(OBJ_DIR)/%.cov.o, $(OBJ_DIR)/%.cov.gcda, $(OBJ))
 MISRA_REPORT_FILE = $(BUILD_DIR)/misra_report.txt
 
 LIBLST = liblst/liblst.a
+LIBELF = binutils/libelftool.a
 
-LIB = $(LIBLST)
+LIB = $(LIBLST) $(LIBELF)
 
 all: prep asm obj callgraphs misra bin
 
@@ -86,12 +84,15 @@ bin: $(NAME)
 
 CGRAPH_FILE = $(NAME).wpa.000i.cgraph
 
+$(LIBELF):
+	$(MAKE) -C binutils/
+
 $(LIBLST):
 	$(MAKE) -C liblst/
 
 $(CGRAPH_FILE): $(NAME)
 
-$(NAME): $(OBJ) 
+$(NAME): $(OBJ) $(LIB)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIB) $(IFLAGS) -fdump-ipa-cgraph -nostartfiles
 
 $(NAME_COVERAGE): $(OBJ_COVERAGE)

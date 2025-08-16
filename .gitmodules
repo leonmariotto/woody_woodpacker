@@ -7,3 +7,6 @@
 [submodule "tinycrypt"]
 	path = tinycrypt
 	url = https://github.com/intel/tinycrypt.git
+[submodule "binutils"]
+	path = binutils
+	url = https://github.com/leonmariotto/binutils.git

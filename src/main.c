@@ -28,6 +28,7 @@
 #include "tinycrypt/constants.h"
 
 #include "elftool.h"
+#include "elftool_load.h"
 #include "elftool_transform.h"
 #include "elftool_write.h"
 #include "elftool_parse.h"
