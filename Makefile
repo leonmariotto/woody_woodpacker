@@ -84,11 +84,13 @@ bin: $(NAME)
 
 CGRAPH_FILE = $(NAME).wpa.000i.cgraph
 
-$(LIBELF):
+$(LIBELF): FORCE
 	$(MAKE) -C binutils/
 
-$(LIBLST):
+$(LIBLST): FORCE
 	$(MAKE) -C liblst/
+
+.PHONY: FORCE
 
 $(CGRAPH_FILE): $(NAME)
 
@@ -139,6 +141,8 @@ $(CALLGRAPH_DIR)/%.supergraph-eg.svg: $(OBJ_DIR)/%.c.supergraph-eg.dot
 	dot -Tsvg -o $@ $<
 
 clean:
+	make -C binutils/ clean
+	make -C liblst/ clean
 	rm -rf $(BUILD_DIR)
 	rm -f $(NAME) $(NAME_COVERAGE) $(NAME_PROFILING)
 	rm -f *.cgraph

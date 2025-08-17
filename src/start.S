@@ -16,11 +16,11 @@ _start:
 
     # --- Choose main function based on boot_mode ---
     mov     boot_mode(%rip), %eax   # load boot_mode
-    test    %eax, %eax
-    jne     1f                           # if !=0, jump to alt_main
-    movabs  $main, %rdi                  # rdi = main
+    cmp     $0xCAFEBABE, %eax
+    jne     1f                           # if !=0xCAFEBABE, jump to alt_main
+    lea main(%rip), %rdi                 # rdi = main
     jmp     2f
-1:  movabs  $launch, %rdi                # rdi = launch
+1:  lea launch(%rip), %rdi               # rdi = launch
 2:
     call    *__libc_start_main@GOTPCREL(%rip)
     hlt                     /* not reached */
@@ -30,3 +30,5 @@ _start:
     .extern main
     .extern launch
     .extern boot_mode
+
+    .section .note.GNU-stack,"",@progbits

@@ -20,45 +20,21 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define _GNU_SOURCE
-#include <linux/memfd.h>
-#include <sys/syscall.h>
-
 #include "tinycrypt/aes.h"
 #include "tinycrypt/constants.h"
 
 #include "elftool.h"
 #include "elftool_load.h"
+#include "elftool_query.h"
 #include "elftool_transform.h"
 #include "elftool_write.h"
 #include "elftool_parse.h"
 
-int boot_mode = 0;
+int boot_mode = 0xCAFEBABE;
+//int boot_mode = 0xDEADBEEF;
 
-static inline int memfd_create(const char *name, unsigned int flags) {
-    return syscall(SYS_memfd_create, name, flags);
-}
-
-
-int exec_elf(uint8_t *elf, size_t elf_size, char **env) {
-    int fd = memfd_create("packed", 0);
-    if (fd == -1) {
-        perror("memfd_create");
-        exit(1);
-    }
-
-    if (write(fd, elf, elf_size) != (ssize_t)elf_size) {
-        perror("write");
-        exit(1);
-    }
-
-    // Execute it
-    fexecve(fd, (char *const[]){ "packed", NULL }, env);
-
-    // Should not be here
-    perror("fexecve");
-    return 1;
-}
+// Used for debug
+void hex_dump(uint8_t *data, size_t size, char *label);
 
 int load_elf(char *path, uint8_t **elf, size_t *elf_size)
 {
@@ -137,6 +113,66 @@ int encrypt_elf(uint8_t *buf, size_t size, uint8_t *key)
     return (r == TC_CRYPTO_SUCCESS ? 0 : -1);
 }
 
+int modify_boot_mode(elftool_t *bin)
+{
+    int r = 0;
+    uint32_t new_boot_mode = 0xDEADBEEF;
+    elftool_sym_query_t query = {
+        .op = ELFTOOL_QUERY_WRITE,
+        .sym_content = &new_boot_mode,
+        .sym_size = 4,
+    };
+
+    r = elftool_sym_query_by_name(bin, &query, "boot_mode");
+    return r;
+}
+
+int modify_key(elftool_t *bin, uint8_t *key)
+{
+    int r = 0;
+    elftool_sym_query_t query = {
+        .op = ELFTOOL_QUERY_WRITE,
+        .sym_content = key,
+        .sym_size = 16,
+    };
+
+    r = elftool_sym_query_by_name(bin, &query, "key");
+    return r;
+}
+
+
+int modify_elf_data(elftool_t *bin, uint64_t vaddr, uint64_t size)
+{
+    int r = 0;
+    elftool_sym_query_t query = {
+        .op = ELFTOOL_QUERY_WRITE,
+        .sym_content = &vaddr,
+        .sym_size = 8,
+    };
+    size_t s = (size_t)size;
+    elftool_sym_query_t s_query = {
+        .op = ELFTOOL_QUERY_WRITE,
+        .sym_content = &s,
+        .sym_size = sizeof(size_t),
+    };
+    elftool_sym_query_t s_vaddr_query = {
+        .op = ELFTOOL_QUERY_WRITE,
+        .sym_content = NULL,
+        .sym_size = 8,
+    };
+    r = elftool_sym_query_by_name(bin, &query, "elf_data");
+    if (r == 0) {
+        r = elftool_sym_query_by_name(bin, &s_query, "elf_size");
+    }
+    if (r == 0) {
+        uint64_t vaddr = s_query.sym_vaddr;
+        s_vaddr_query.sym_content = &vaddr;
+        r = elftool_sym_query_by_name(bin, &s_vaddr_query, "elf_size_vaddr");
+    }
+    return r;
+}
+
+
 int main(int ac, char **av, char **env)
 {
     int r = 0;
@@ -162,8 +198,10 @@ int main(int ac, char **av, char **env)
     }
     if (r == 0) {
         printf("Encrypt elf\n");
+        hex_dump(target_bin, 64, "BEFORE ENCRYPTION");
         if (r == 0) {
             r = encrypt_elf(target_bin, target_size, key);
+            hex_dump(target_bin, 64, "AFTER ENCRYPTION");
         }
     }
     elftool_t bin = {0};
@@ -174,14 +212,25 @@ int main(int ac, char **av, char **env)
             r = elftool_parse(&bin);
         }
     }
+    elftool_transform_t trans = {
+        .code = target_bin,
+        .code_len = target_size,
+    };
     if (r == 0) {
-        printf("Inject new section\n");
-        elftool_transform_t trans = {
-            .type = NM_SECTION_INJECT,
-            .code = target_bin,
-            .code_len = target_size,
-        };
-        r = elftool_transform_section_injection(&bin, &trans);
+        printf("Inject new section code_size=%zu\n", target_size);
+        r = elftool_transform_segment_injection(&bin, &trans);
+    }
+    if (r == 0) {
+        printf("Modify boot_mode\n");
+        r = modify_boot_mode(&bin);
+    }
+    if (r == 0) {
+        printf("Modify elf_data and elf_size vaddr=%lu\n", trans.virtual_addr);
+        r = modify_elf_data(&bin, trans.virtual_addr, trans.code_len);
+    }
+    if (r == 0) {
+        printf("Modify key\n");
+        r = modify_key(&bin, key);
     }
     if (r == 0) {
         printf("Write woody output\n");
