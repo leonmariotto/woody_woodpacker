@@ -6,3 +6,5 @@ site/*
 .cache/
 compile_commands.json
 unit_test_*
+
+woody*
