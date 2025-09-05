@@ -184,11 +184,11 @@ int main(int ac, char **av, char **env)
         fprintf(stderr, "Usage: ./woody [target_elf]\n");
         return -1;
     }
-    printf("Load target elf (%s)\n", av[1]);
+    // printf("Load target elf (%s)\n", av[1]);
     r = load_elf(av[1], &target_bin, &target_size);
 
     if (r == 0) {
-        printf("Get random\n");
+        // printf("Get random\n");
         r = get_urandom(key, 16);
         printf("K=%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
             key[0], key[1], key[2], key[3],
@@ -197,16 +197,16 @@ int main(int ac, char **av, char **env)
             key[12+0], key[12+1], key[12+2], key[12+3]);
     }
     if (r == 0) {
-        printf("Encrypt elf\n");
-        hex_dump(target_bin, 64, "BEFORE ENCRYPTION");
+        //printf("Encrypt elf\n");
+        //hex_dump(target_bin, 64, "BEFORE ENCRYPTION");
         if (r == 0) {
             r = encrypt_elf(target_bin, target_size, key);
-            hex_dump(target_bin, 64, "AFTER ENCRYPTION");
+            //hex_dump(target_bin, 64, "AFTER ENCRYPTION");
         }
     }
     elftool_t bin = {0};
     if (r == 0) {
-        printf("Parse woody elf\n");
+        // printf("Parse woody elf\n");
         r = elftool_load(&bin, av[0]);
         if (r == 0) {
             r = elftool_parse(&bin);
@@ -217,23 +217,23 @@ int main(int ac, char **av, char **env)
         .code_len = target_size,
     };
     if (r == 0) {
-        printf("Inject new section code_size=%zu\n", target_size);
+        // printf("Inject new section code_size=%zu\n", target_size);
         r = elftool_transform_segment_injection(&bin, &trans);
     }
     if (r == 0) {
-        printf("Modify boot_mode\n");
+        // printf("Modify boot_mode\n");
         r = modify_boot_mode(&bin);
     }
     if (r == 0) {
-        printf("Modify elf_data and elf_size vaddr=%lu\n", trans.virtual_addr);
+        // printf("Modify elf_data and elf_size vaddr=%lu\n", trans.virtual_addr);
         r = modify_elf_data(&bin, trans.virtual_addr, trans.code_len);
     }
     if (r == 0) {
-        printf("Modify key\n");
+        // printf("Modify key\n");
         r = modify_key(&bin, key);
     }
     if (r == 0) {
-        printf("Write woody output\n");
+        // printf("Write woody output\n");
         r = elftool_write(&bin, "woody_out");
     }
 
