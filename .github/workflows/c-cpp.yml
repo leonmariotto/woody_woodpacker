@@ -16,7 +16,7 @@ jobs:
 
     - name: Init submodules
       run: |
-        git submodule update --init
+        git submodule update --init --recursive
     
     - name: Install dependency
       run: |
